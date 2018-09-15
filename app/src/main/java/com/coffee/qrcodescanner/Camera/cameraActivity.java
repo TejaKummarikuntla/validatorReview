@@ -1,5 +1,6 @@
 package com.coffee.qrcodescanner.Camera;
 
+
 import android.Manifest;
 import android.content.Context;
 import android.content.pm.PackageManager;
@@ -26,7 +27,6 @@ import android.os.Environment;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.support.annotation.NonNull;
-import android.support.annotation.RequiresApi;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -61,9 +61,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.UUID;
 
-
 public class cameraActivity extends AppCompatActivity {
-
 
 
     TextView textView;
@@ -154,7 +152,7 @@ public class cameraActivity extends AppCompatActivity {
         mLatitudeText = (TextView) findViewById((R.id.latitude_text));
         mLongitudeText = (TextView) findViewById((R.id.longitude_text));
 
-        mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
+//        mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
 
         textureView = (TextureView) findViewById(R.id.textureView);
         //From Java 1.4 , you can use keyword 'assert' to check expression true or false
@@ -165,7 +163,6 @@ public class cameraActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 textView.setText(timestamp());
-
                 takePicture();
 
             }
@@ -175,25 +172,12 @@ public class cameraActivity extends AppCompatActivity {
     }
 
 
-    @Override
-    public void onStart() {
-        super.onStart();
-
-        if (!checkPermissions()) {
-            requestPermissions();
-        } else {
-            getLastLocation();
-        }
-    }
-
-
     private String timestamp() {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         String dateTime = sdf.format(Calendar.getInstance().getTime()); // reading local time in the system
         return (dateTime);
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     private void takePicture() {
         if (cameraDevice == null)
             return;
@@ -293,7 +277,6 @@ public class cameraActivity extends AppCompatActivity {
         }
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     private void createCameraPreview() {
         try {
             SurfaceTexture texture = textureView.getSurfaceTexture();
@@ -321,11 +304,9 @@ public class cameraActivity extends AppCompatActivity {
         }
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     private void updatePreview() {
-        if (cameraDevice == null) {
+        if (cameraDevice == null)
             Toast.makeText(this, "Error", Toast.LENGTH_SHORT).show();
-        }
         captureRequestBuilder.set(CaptureRequest.CONTROL_MODE, CaptureRequest.CONTROL_MODE_AUTO);
         try {
             cameraCaptureSessions.setRepeatingRequest(captureRequestBuilder.build(), null, mBackgroundHandler);
@@ -335,7 +316,6 @@ public class cameraActivity extends AppCompatActivity {
     }
 
 
-    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     private void openCamera() {
         CameraManager manager = (CameraManager) getSystemService(Context.CAMERA_SERVICE);
         try {
@@ -390,21 +370,8 @@ public class cameraActivity extends AppCompatActivity {
             }
         }
 
-        Log.i(TAG, "onRequestPermissionResult");
-        if (requestCode == REQUEST_PERMISSIONS_REQUEST_CODE) {
-            if (grantResults.length <= 0) {
-                Log.i(TAG, "User interaction was cancelled.");
-            } else if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                // Permission granted.
-                getLastLocation();
-            } else {
-                Toast.makeText(this, "permission Deniedd", Toast.LENGTH_SHORT).show();
-
-            }
-        }
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     @Override
     protected void onResume() {
         super.onResume();
@@ -425,7 +392,6 @@ public class cameraActivity extends AppCompatActivity {
         super.onPause();
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
     private void stopBackgroundThread() {
         mBackgroundThread.quitSafely();
         try {
@@ -442,96 +408,8 @@ public class cameraActivity extends AppCompatActivity {
         mBackgroundThread.start();
         mBackgroundHandler = new Handler(mBackgroundThread.getLooper());
     }
-
-
-    private String hereLocation(double lat, double lon) {
-        String cityName = " ";
-        Geocoder geocoder = new Geocoder(this, Locale.getDefault());
-        List<Address> addresses;
-        try {
-            addresses = geocoder.getFromLocation(lat, lon, 10);
-            if (addresses.size() > 0) {
-                for (Address adr : addresses) {
-                    if (adr.getLocality() != null && adr.getLocality().length() > 0) {
-                        cityName = adr.getLocality();
-//                        cityName = addresses.get(0).getLocality();
-                        break;
-                    }
-                }
-            }
-
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return cityName;
-    }
-
-
-    private void getLastLocation() {
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            // TODO: Consider calling
-            //    ActivityCompat#requestPermissions
-            // here to request the missing permissions, and then overriding
-            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-            //                                          int[] grantResults)
-            // to handle the case where the user grants the permission. See the documentation
-            // for ActivityCompat#requestPermissions for more details.
-            return;
-        }
-        mFusedLocationClient.getLastLocation()
-                .addOnCompleteListener(this, new OnCompleteListener<Location>() {
-                    @Override
-                    public void onComplete(@NonNull Task<Location> task) {
-                        if (task.isSuccessful() && task.getResult() != null) {
-                            mLastLocation = task.getResult();
-
-                            mLatitudeText.setText(String.format(Locale.ENGLISH, "%s: %f",
-                                    mLatitudeLabel,
-                                    mLastLocation.getLatitude()));
-                            mLongitudeText.setText(String.format(Locale.ENGLISH, "%s: %f",
-                                    mLongitudeLabel,
-                                    mLastLocation.getLongitude()));
-                        } else {
-                            Log.w(TAG, "getLastLocation:exception", task.getException());
-                            Toast.makeText(cameraActivity.this, "No location Dected", Toast.LENGTH_SHORT).show();
-                            //showSnackbar(getString(R.string.no_location_detected));
-                        }
-                    }
-                });
-    }
-
-
-
-    private boolean checkPermissions() {
-        int permissionState = ActivityCompat.checkSelfPermission(this,
-                Manifest.permission.ACCESS_COARSE_LOCATION);
-        return permissionState == PackageManager.PERMISSION_GRANTED;
-    }
-
-    private void startLocationPermissionRequest() {
-        ActivityCompat.requestPermissions(cameraActivity.this,
-                new String[]{Manifest.permission.ACCESS_COARSE_LOCATION},
-                REQUEST_PERMISSIONS_REQUEST_CODE);
-    }
-
-    private void requestPermissions() {
-        boolean shouldProvideRationale =
-                ActivityCompat.shouldShowRequestPermissionRationale(this,
-                        Manifest.permission.ACCESS_COARSE_LOCATION);
-
-        // Provide an additional rationale to the user. This would happen if the user denied the
-        // request previously, but didn't check the "Don't ask again" checkbox.
-        if (shouldProvideRationale) {
-            Log.i(TAG, "Displaying permission rationale to provide additional context.");
-
-
-        } else {
-            Log.i(TAG, "Requesting permission");
-            // Request permission. It's possible this can be auto answered if device policy
-            // sets the permission in a given state or the user denied the permission
-            // previously and checked "Never ask again".
-            startLocationPermissionRequest();
-        }
-    }
 }
+
+
+
 
